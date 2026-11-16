@@ -22,7 +22,15 @@ jobs:
           pip install buildozer
 
       - name: APK derle
-        run: buildozer -v android debug
+        run: |
+          set -o pipefail
+          buildozer -v android debug 2>&1 | tee build.log
+
+      - name: Hata ozeti
+        if: failure()
+        run: |
+          LOG=$(tail -n 40 build.log | sed 's/%/ /g' | cut -c1-200 | sed ':a;N;$!ba;s/\n/%0A/g')
+          echo "::error title=Derleme hatasi::$LOG"
 
       - name: APK yukle
         uses: actions/upload-artifact@v4
