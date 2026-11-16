@@ -29,7 +29,10 @@ jobs:
       - name: Hata ozeti
         if: failure()
         run: |
-          LOG=$(tail -n 40 build.log | sed 's/%/ /g' | cut -c1-200 | sed ':a;N;$!ba;s/\n/%0A/g')
+          N=$(grep -n "Command failed" build.log | head -1 | cut -d: -f1)
+          if [ -z "$N" ]; then N=$(wc -l < build.log); fi
+          S=$((N-35)); if [ $S -lt 1 ]; then S=1; fi
+          LOG=$(sed -n "${S},${N}p" build.log | sed 's/%/ /g' | cut -c1-160 | sed ':a;N;$!ba;s/\n/%0A/g')
           echo "::error title=Derleme hatasi::$LOG"
 
       - name: APK yukle
